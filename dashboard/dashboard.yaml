@@ -1,0 +1,243 @@
+views:
+  - title: Information
+    cards:
+      - type: vertical-stack
+        cards:
+          - type: vertical-stack
+            cards:
+              - type: horizontal-stack
+                cards:
+                  - type: entity
+                    entity: text.#INVERTER#_inverter_model
+                    name: Inverter Model
+                    icon: mdi:identifier
+                  - type: entity
+                    entity: text.#INVERTER#_inverter_software_version
+                    name: Software
+                    icon: mdi:numeric-10-box-multiple-outline
+              - type: entity
+                entity: text.#INVERTER#_inverter_serial_number
+                name: Serial Number
+                icon: mdi:ticket-confirmation-outline
+              - type: horizontal-stack
+                cards:
+                  - type: entity
+                    entity: sensor.#INVERTER#_air_temperature
+                    name: Internal Temp.
+                    icon: mdi:temperature-celsius
+                    state_color: true
+            view_layout:
+              position: main
+            title: Inverter Information
+          - type: vertical-stack
+            cards:
+              - type: custom:apexcharts-card
+                apex_config:
+                  legend:
+                    show: false
+                    floating: true
+                    fontSize: 16px
+                  plotOptions:
+                    radialBar:
+                      offsetY: 0
+                      dataLabels:
+                        name:
+                          show: true
+                          fontSize: 22px
+                        value:
+                          show: true
+                          fontSize: 30px
+                experimental:
+                  color_threshold: true
+                header:
+                  show: false
+                  title: Charge
+                  show_states: false
+                  colorize_states: true
+                chart_type: radialBar
+                series:
+                  - entity: sensor.#INVERTER#_battery_soc
+                    name: Charge
+                    color_threshold:
+                      - value: 0
+                        color: Red
+                      - value: 20
+                        color: OrangeRed
+                      - value: 40
+                        color: Orange
+                      - value: 70
+                        color: YellowGreen
+                      - value: 90
+                        color: ForestGreen
+              - type: horizontal-stack
+                cards:
+                  - type: entity
+                    entity: text.#INVERTER#_battery_status
+                    name: Status
+                    icon: mdi:battery-unknown
+                  - type: entity
+                    entity: sensor.#INVERTER#_battery_power
+                    name: Power
+                    icon: mdi:battery-charging-80
+            title: Battery
+      - type: vertical-stack
+        cards:
+          - type: markdown
+            content: >-
+
+              | | | | |
+
+              | ------------ | --- | -------: | ------- |
+
+              | <ha-icon icon="mdi:solar-panel"></ha-icon> Solar Panel  | &nbsp;
+              &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |
+              **{{ states('sensor.#INVERTER#_pv_power_total') }}**    | **W** |
+
+              | <ha-icon icon="mdi:battery-charging"></ha-icon> Battery      | |
+              **{{ states('sensor.#INVERTER#_battery_power') }}**     | **W** |
+
+              | <ha-icon icon="mdi:domain"></ha-icon> Building     | | **{{
+              states('sensor.#INVERTER#_monitoring_building_consumption_minute')
+              }}**    | **W** |
+
+              | <ha-icon icon="mdi:transmission-tower"></ha-icon> Grid         |
+              | **{{ states('sensor.#INVERTER#_monitoring_grid_power_flow_minute')
+              }}**    | **W** |
+
+              | <ha-icon icon="mdi:meter-electric"></ha-icon> Meter        | |
+              **{{ states('sensor.#INVERTER#_meter_power') }}**    | **W** |
+
+
+              <ha-alert alert-type="warning">Those values are averaged over the
+              last minute, and not meant to add up.</ha-alert> <ha-alert
+              alert-type="info">Negative values for Grid represent the amount
+              injected by the inverter.</ha-alert>
+          - type: vertical-stack
+            cards:
+              - type: horizontal-stack
+                cards:
+                  - type: gauge
+                    entity: sensor.#INVERTER#_monitoring_self_consumption
+                    name: Self Consumption
+                    needle: true
+                  - type: gauge
+                    entity: sensor.#INVERTER#_monitoring_self_suffiency
+                    name: Self Sufficiency
+                    needle: true
+              - type: markdown
+                content: >-
+                  ## Economy : **{{
+                  (states('sensor.#INVERTER#_monitoring_economy_factor')|float *
+                  0.2516)|round(2, 'floor') }} €**
+              - type: markdown
+                content: >-
+                  | | | | |
+
+                  | ------------ | --- | -------: | ------- |
+
+                  | <ha-icon icon="mdi:solar-panel"></ha-icon> Solar Production 
+                  | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **{{
+                  states('sensor.#INVERTER#_monitoring_solar_production') }}**    |
+                  **Wh** |
+
+                  | <ha-icon icon="mdi:battery-charging"></ha-icon> Battery     
+                  | | **{{ states('sensor.#INVERTER#_monitoring_grid_consumption')
+                  }}**     | **Wh** |
+
+                  | <ha-icon icon="mdi:domain"></ha-icon> Building     | | **{{
+                  states('sensor.#INVERTER#_monitoring_building_consumption')
+                  }}**    | **Wh** |
+
+                  | <ha-icon icon="mdi:transmission-tower"></ha-icon>
+                  Grid         | | **{{
+                  states('sensor.#INVERTER#_monitoring_grid_power_flow') }}**    |
+                  **Wh** |
+
+
+                  <ha-alert alert-type="info">Negative values for Grid represent
+                  the amount injected by the inverter.</ha-alert>
+            title: Performance (last 24H)
+        title: Power Flow (last minute)
+    icon: mdi:information
+  - title: Production
+    path: production
+    icon: mdi:chart-bell-curve
+    type: panel
+    cards:
+      - type: custom:apexcharts-card
+        style: |
+          ha-card {
+            border-radius: "var(--border-radius)";
+            box-shadow: none;
+            padding-bottom: 0px;
+            padding-top: 0px;
+          }
+        experimental:
+          brush: true
+        brush:
+          selection_span: 24h
+        now:
+          show: true
+          color: red
+          label: Now
+        span:
+          start: day
+          offset: +6h
+        header:
+          show: true
+          title: Production
+          show_states: true
+          colorize_states: true
+        series:
+          - entity: sensor.#INVERTER#_monitoring_solar_production_minute
+            name: Solar Production
+            extend_to: now
+            type: area
+            stroke_width: 2
+            show:
+              in_brush: true
+              in_chart: true
+          - entity: sensor.#INVERTER#_monitoring_grid_power_flow_minute
+            name: Grid Consumption/Injection
+            extend_to: now
+            type: area
+            stroke_width: 2
+            show:
+              in_brush: true
+              in_chart: true
+          - entity: sensor.#INVERTER#_monitoring_building_consumption_minute
+            name: Building Consumption
+            extend_to: now
+            type: area
+            stroke_width: 2
+            show:
+              in_brush: true
+              in_chart: true
+          - entity: sensor.#INVERTER#_battery_power
+            name: Battery Consumption/Injection
+            extend_to: now
+            type: area
+            stroke_width: 2
+            show:
+              in_brush: true
+              in_chart: true
+  - title: Timeline
+    path: timeline
+    icon: mdi:timeline-alert
+    cards:
+      - type: horizontal-stack
+        cards:
+          - type: logbook
+            entities:
+              - text.#INVERTER#_timeline
+            title: Events
+            hours_to_show: 24
+    type: panel
+  - icon: mdi:tooltip-question
+    title: Support
+    path: support
+    type: panel
+    cards:
+      - type: iframe
+        url: https://support.imeon-energy.com/fr/support/solutions
+        aspect_ratio: 60%
