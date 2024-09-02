@@ -1,0 +1,35 @@
+# An exemple two part automation.
+
+# Part 1
+alias: Hot Water Tank control by Relay (ON)
+description: Battery SOC is above 50% ? Turn on the Hot Water an hour before sunrise.
+trigger:
+  - platform: sun
+    event: sunrise
+    offset: "-01:00:00"
+condition:
+  - condition: numeric_state
+    entity_id: sensor.inverter_86_battery_soc
+    above: 50
+action:
+  - action: imeon_inverter.inverter_86_relay
+    data:
+      active: true
+mode: restart
+
+# Part 2
+alias: Hot Water Tank control by Relay (OFF)
+description: Battery SOC is below 30% ? Turn on the Hot Water at sunset.
+trigger:
+  - platform: sun
+    event: sunset
+    offset: 0
+condition:
+  - condition: numeric_state
+    entity_id: sensor.inverter_86_battery_soc
+    below: 30
+action:
+  - action: imeon_inverter.inverter_86_relay
+    data:
+      active: false
+mode: restart
